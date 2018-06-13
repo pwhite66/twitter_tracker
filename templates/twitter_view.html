@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Twitter Tracker</title>
+        <link href="https://fonts.googleapis.com/css?family=Quicksand" rel="stylesheet">
+
+        <style>
+            body {
+                font-family: 'Quicksand', sans-serif;
+                font-size: 10px;
+                background-color: #DDDDDD;
+            }
+
+            .status_item {
+                width: 300px;
+                margin-bottom: 5px;
+                padding: 2px 2px 2px 4px;
+                background-color: #EEEEFF;
+            }
+
+            .header {
+                text-align: center;
+            }
+
+            #status_div {
+                width: 350px;
+                background: #FFFFFF;
+                float: left;
+                display: block;
+            }
+
+            #map {
+                width: 650px;
+                height: 600px;
+                background: #FFFFFF;
+                float: left;
+                display: block;
+            }
+
+            #container {
+                width: 1000px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        </style>
+
+    </head>
+
+    <body>
+        <div id="container">
+            <div id="status_div">
+                <h2 class="header">{{ handle }}'s Most Recent Tweets</h2>
+                <ol>
+                {% for status in status_data %}
+                    <li class="status_item">{{ status.text }}</li>
+                {% endfor %}
+                </ol>
+            </div>
+
+            <div id="map"></div>
+        </div>
+
+        <script>
+            function initMap() {
+                var center = {lat: 52, lng: 0};
+                var map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 5,
+                    center: center
+                });
+                var infoWindow = new google.maps.InfoWindow();
+                var bounds = new google.maps.LatLngBounds();
+
+                {% for status in status_data %}
+                    {% if status.location is not None %}
+                        var position = new google.maps.LatLng({{ status.location.lat }}, {{ status.location.long }});
+                        bounds.extend(position);
+
+                        marker = new google.maps.Marker({
+                                    position: position,
+                                    map: map,
+                                    title: 'Tweet {{ forloop.counter }}'
+                        });
+
+                        google.maps.event.addListener(marker, 'click', (function(marker) {
+                            return function() {
+                                infoWindow.setContent("{{ status.text }}");
+                                infoWindow.open(map, marker);
+                            }
+                        })(marker));
+                        map.fitBounds(bounds);
+                    {% endif %}
+                {% endfor %}
+
+                var boundsListener = google.maps.event.addListener((map), 'bounds_changed', function(event) {
+                    this.setZoom(5);
+                    google.maps.event.removeListener(boundsListener);
+                });
+            }
+        </script>
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ map_api_key }}&callback=initMap"></script>
+
+    </body>
+</html>
