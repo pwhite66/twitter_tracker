@@ -6,6 +6,9 @@
 * tweepy 3.5.0
 * django-picklefield 1.0.0
 
+* Twitter app api credential
+* Google map api key
+
 ### Additional Functionality ###
 
 Additional GET response has been added
